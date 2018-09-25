@@ -1,0 +1,45 @@
+
+
+<AnnotationBox>:
+    canvas:
+        Color:
+            rgba: .1, .1, 1, .9
+        Line:
+            width: 5.
+            rectangle: (0, 0, self.box_size[0], self.box_size[1])
+
+<Background>:    
+    canvas:
+        Rectangle:
+            pos: self.pos
+            size: root.size
+            source: ""
+
+<SaveFile>:
+    title: 'Select File'
+
+    # FileChooserLayout
+    BoxLayout:
+        orientation: 'vertical'
+
+        # ButtonArea
+        BoxLayout:
+            orientation: 'horizontal'
+            spacing: 50
+            size_hint: (.8,.8)
+            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+            FileChooserIconView:
+                path: "/mnt/sdcard"
+                dirselect: True
+                on_selection: 
+                    app.root.selected_file(*args)
+
+        BoxLayout:
+            pos_hint: {'center_x': 0.9, '': 0.1}
+            size_hint: (.1,.1)  
+            Button:
+                text: "Select"
+                on_release: 
+                    app.root.on_popup_close()
+                    root.dismiss()

@@ -1,0 +1,3 @@
+title=Image Annotation App
+author=David Vidmar
+orientation=landscape
