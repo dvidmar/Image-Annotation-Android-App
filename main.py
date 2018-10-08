@@ -9,6 +9,8 @@ Created on Fri Aug 24 11:14:45 2018
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
+from kivy.uix.dropdown import DropDown
+from kivy.uix.label import Label
 from kivy.storage.jsonstore import JsonStore
 from kivy.graphics import Rectangle
 from kivy.graphics import Line, Color
@@ -93,7 +95,7 @@ class RootWidget(Widget):
             #add position and scale to json
             scale_x, scale_y, center = self.scatter.get_scale_xy()
             self.ann_dict['Box %i: '%len(self.boxes)] =  {
-                "center": center, 
+                "center": center, "class": self.scatter.children[0].text,
                 "scale_x": scale_x, "scale_y": scale_y,
                 "box_size": self.box_size,"img_size": self.size
                 }
@@ -103,6 +105,9 @@ class RootWidget(Widget):
             box.do_translation_x = False
             box.do_translation_y = False
             box.do_scale = False
+            
+        #reset class text to empty
+        setattr(self.btn_class, 'text', 'Select Class')        
         
         #add a new bounding box
         BBpos = (touch.x - self.box_size[0]/2, touch.y - self.box_size[1]/2)
@@ -111,9 +116,14 @@ class RootWidget(Widget):
         self.scatter.scale_y = 1.0
         
         self.scatter.add_widget(AnnotationBox())
+        self.scatter.add_widget(Label(text='', color=[.1, .1, 1, .9], font_size = 20))
         self.parent.add_widget(self.scatter)
         
         self.boxes.append(self.scatter)
+        
+        #bind class selection to bounding box text
+        self.dropdown.bind(on_select=lambda instance, x: setattr(self.btn_class, 'text', x)) 
+        self.dropdown.bind(on_select=lambda instance, x: setattr(self.scatter.children[0],'text', x))
         
     def submit_annotation(self, bt_instance):
         
@@ -126,6 +136,7 @@ class RootWidget(Widget):
                 #add position and scale to json
                 scale_x, scale_y, center = self.scatter.get_scale_xy()
                 self.ann_dict['Box %i: '%len(self.boxes)] =  {"center": center, 
+                              "class": self.scatter.children[0].text, 
                               "scale_x": scale_x, "scale_y": scale_y,
                               "box_size": self.box_size,"img_size": self.size}
                             
@@ -142,6 +153,7 @@ class RootWidget(Widget):
         self.pix_dict = {}
         self.ann_dict = {}
         self.scatter = None
+        setattr(self.btn_class, 'text', 'Select Class')
         self.stroke_num = 0
         
         #show the new image
@@ -152,14 +164,22 @@ class RootWidget(Widget):
         self.pix_dict = {}
         self.ann_dict = {}
         self.scatter = None
+        setattr(self.btn_class, 'text', 'Select Class')
         self.stroke_num = 0
         self.create_annotation_station()
         
     def toggle_paint(self, bt_instance):
         self.paint = not self.paint
         self.create_annotation_station()
-    
-    
+        
+    def create_dropdown(self):
+        self.dropdown = DropDown()
+        
+        for category in Config.CLASSES:
+            btn = Button(text=category, size_hint_y=None, height=.8*self.size[1]/len(Config.CLASSES))
+            btn.bind(on_release=lambda btn: self.dropdown.select(btn.text))
+            self.dropdown.add_widget(btn)
+                
     # create backdrop for annotation ----------------------------------------------------------------
     def create_annotation_station(self):
         self.canvas.clear()
@@ -185,10 +205,18 @@ class RootWidget(Widget):
         self.add_widget(btn_reset)
         
         #make toggle paint button
-        btn_paint = Button(pos=(self.size[0]-self.size[0]*.5-self.size[0]*.15/2,25),
+        btn_paint = Button(pos=(self.size[0]-self.size[0]*.4-self.size[0]*.15/2,25),
                            size=(self.size[0]*.15,self.size[0]*.05),text='Toggle Paint')
         btn_paint.bind(on_release=self.toggle_paint)
-        self.add_widget(btn_paint)                
+        self.add_widget(btn_paint)  
+
+        #make class selection button
+        self.create_dropdown()
+        self.btn_class = Button(pos=(self.size[0]-self.size[0]*.6-self.size[0]*.15/2,25),
+                           size=(self.size[0]*.15,self.size[0]*.05),size_hint=(None, None),
+                           text='Select Class')
+        self.btn_class.bind(on_release=self.dropdown.open)
+        self.add_widget(self.btn_class)  
         
         #make button to submit annotation
         btn_submit = Button(pos=(self.size[0]-self.size[0]*.1-25,25),size=(self.size[0]*.1,self.size[0]*.1),

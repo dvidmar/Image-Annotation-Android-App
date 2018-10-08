@@ -9,3 +9,4 @@ Created on Sun Oct  7 12:26:00 2018
 class Config:
     SHOW_PROGRESS_BAR = True
     ANNOTATION_BOX_SIZE = 300
+    CLASSES = ['dog','cat','human','horse','pig','fish']
