@@ -2,3 +2,4 @@ buildozer.spec
 /bin
 /buildozer
 /.buildozer
+/__pycache__
